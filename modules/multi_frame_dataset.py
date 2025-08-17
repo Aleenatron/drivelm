@@ -19,19 +19,63 @@ class MultiFrameDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def __getitem__(self, idx):
-        # Get the question and answer at the idx
-        qa, img_path = self.data[idx]
-        img_path = list(img_path.values())
+    # def __getitem__(self, idx):
+    #     # Get the question and answer at the idx
+    #     print(f"[DEBUG] Requested index: {idx}")
+    #     print(f"[DEBUG] Total dataset size: {len(self.data)}")
+    #     print(f"[DEBUG] Sample data preview: {self.data[:2]}")
+    #     print(f"[DEBUG] Sample at index: {self.data[idx]}")
+    #     if idx not in self.data:
+    #         print(f"[ERROR] Index {idx} not found in dataset keys!")
+    #         raise KeyError(idx)
 
-        q_text, a_text = qa['Q'], qa['A']
-        q_text = f"Question: {q_text} Answer:"
+    #     qa, img_path = self.data[idx]
+    #     img_path = list(img_path.values())
 
-        # Concatenate images into a single tensor
-        imgs = [self.transform(read_image(p).float()).to(device) for p in img_path]
-        imgs = torch.stack(imgs, dim=0)
+    #     q_text, a_text = qa['Q'], qa['A']
+    #     q_text = f"Question: {q_text} Answer:"
 
-        return q_text, imgs, a_text, sorted(list(img_path))
+    #     # Concatenate images into a single tensor
+    #     imgs = [self.transform(read_image(p).float()).to(device) for p in img_path]
+    #     imgs = torch.stack(imgs, dim=0)
+
+    #     return q_text, imgs, a_text, sorted(list(img_path))
+    
+    def __getitem__(self, idx, retry=False):
+        print(f"[DEBUG] Requested index: {idx}")
+        print(f"[DEBUG] Total dataset size: {len(self.data)}")
+
+        try:
+            sample = self.data[idx]
+            print(f"[DEBUG] Sample at index {idx}: {sample}")
+
+            if not isinstance(sample, list) or len(sample) != 2:
+                raise ValueError(f"[ERROR] Invalid sample format at index {idx}: {sample}")
+
+            qa, img_path_dict = sample
+            img_path = list(img_path_dict.values())
+            q_text, a_text = qa['Q'], qa['A']
+            q_text = f"Question: {q_text} Answer:"
+
+            imgs = []
+            for p in img_path:
+                if not os.path.exists(p):
+                    raise FileNotFoundError(f"[SKIPPED] Image not found: {p}")
+                imgs.append(self.transform(read_image(p).float()).to(device))
+
+            imgs = torch.stack(imgs, dim=0)
+            return q_text, imgs, a_text, sorted(img_path)
+
+        except Exception as e:
+            print(f"[ERROR] Failed at index {idx}: {e}")
+            if not retry:
+                next_idx = (idx + 1) % len(self.data)
+                print(f"[RETRY] Trying next index: {next_idx}")
+                return self.__getitem__(next_idx, retry=True)
+            else:
+                raise e
+
+
 
     def collate_fn(self, batch):
         q_texts, imgs, a_texts, _ = zip(*batch)
