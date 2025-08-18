@@ -29,6 +29,7 @@ st.title("DriveVLM Multiview Q&A 🔍🚗")
 # Build selection list
 scene_keys = list(image_id_map.keys())
 selected_key = st.selectbox("Select Scene + Question", scene_keys)
+st.write(f"[DEBUG] Looking for: {selected_key}")
 
 # Show Question
 question = selected_key.split(" ", 1)[1]

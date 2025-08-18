@@ -48,6 +48,14 @@ def val_model(dloader):
                 img_key = image_path[0]
                 question_only = q_text.replace("Question: ", "").strip()
                 key_string = img_key + ' ' + question_only
+                # to fix dashboad predic.json error 
+                # question_text = q_text.strip()
+                # key_string = img_key + ' ' + question_text
+                print(f"[DEBUG] Eval key_string: {repr(key_string)}")
+                print(f"[DEBUG] Trying key: {repr(key_string)}")
+                print(f"Present in image_id_dict? {key_string in image_id_dict}")
+                if key_string in image_id_dict:
+                    print(f"[DEBUG] Image ID: {image_id_dict[key_string][0]}")
 
                 if key_string not in image_id_dict:
                     print(f"[Warning] Missing key in image_id_dict: {key_string}")
@@ -123,7 +131,7 @@ if __name__ == "__main__":
         ])
     )
     test_dloader = DataLoader(
-        test_dset, shuffle=True, batch_size=config.batch_size, drop_last=True,
+        test_dset, shuffle=False, batch_size=config.batch_size, drop_last=False,
         collate_fn=test_dset.test_collate_fn
     )
 
