@@ -42,7 +42,7 @@ for idx, cam in enumerate(CAMERAS):
     img_path = img_paths[cam]
     try:
         image = Image.open(img_path)
-        cols[idx % 3].image(image, caption=cam, use_column_width=True)
+        cols[idx % 3].image(image, caption=cam, use_container_width=True)
     except FileNotFoundError:
         cols[idx % 3].error(f"Missing image: {img_path}")
 
