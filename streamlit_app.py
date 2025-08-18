@@ -4,58 +4,65 @@ import os
 from PIL import Image
 import subprocess
 
-# === CONFIG ===
-CAMERAS = ["CAM_FRONT", "CAM_FRONT_LEFT", "CAM_FRONT_RIGHT", "CAM_BACK", "CAM_BACK_LEFT", "CAM_BACK_RIGHT"]
-DATA_DIR = "data/nuscenes"
+# ===== CONFIGURATION =====
+CAMERAS = [
+    "CAM_FRONT", "CAM_FRONT_LEFT", "CAM_FRONT_RIGHT",
+    "CAM_BACK", "CAM_BACK_LEFT", "CAM_BACK_RIGHT"
+]
+IMAGE_ROOT = "data/nuscenes"
 PROMPT_FILE = "data/multi_frame/dummyprompts.json"
-IMAGE_MAP_FILE = "data/multi_frame/image_id_dummy.json"
-PREDICTIONS_FILE = "multi_frame_results/predictions.json"
+IMAGE_ID_FILE = "data/multi_frame/image_id_dummy.json"
+PREDICTIONS_FILE = "multi_frame_results/T5-Medium/predictions.json"
+EVAL_SCRIPT = "eval.py"
 
-# === Load JSONs ===
+# ===== LOAD PROMPTS & IMAGE-ID MAPPING =====
 with open(PROMPT_FILE, "r") as f:
-    prompts = json.load(f)
+    prompt_entries = json.load(f)
 
-with open(IMAGE_MAP_FILE, "r") as f:
-    image_map = json.load(f)
+with open(IMAGE_ID_FILE, "r") as f:
+    image_id_map = json.load(f)
 
-# === UI ===
-st.title("DriveVLM Multi-View QA 🚗📷")
-scene_ids = list(prompts.keys())
-selected_scene = st.selectbox("Select a Scene ID", scene_ids)
+# ====== Streamlit UI ======
+st.set_page_config(layout="wide")
+st.title("DriveVLM Multiview Q&A 🔍🚗")
 
-# === Display Images ===
-st.subheader("Camera Views")
+# Build selection list
+scene_keys = list(image_id_map.keys())
+selected_key = st.selectbox("Select Scene + Question", scene_keys)
+
+# Show Question
+question = selected_key.split(" ", 1)[1]
+st.markdown(f"### Question:\n**{question}**")
+
+# Show 6 images
 cols = st.columns(3)
-image_ids = image_map[selected_scene]
+img_paths = image_id_map[selected_key][1]
 
 for idx, cam in enumerate(CAMERAS):
-    img_path = os.path.join(DATA_DIR, cam, image_ids[idx].split('/')[-1])
+    img_path = img_paths[cam]
     try:
-        img = Image.open(img_path)
-        cols[idx // 3].image(img, caption=cam, use_column_width=True)
+        image = Image.open(img_path)
+        cols[idx % 3].image(image, caption=cam, use_column_width=True)
     except FileNotFoundError:
-        cols[idx // 3].warning(f"Image not found: {img_path}")
+        cols[idx % 3].error(f"Missing image: {img_path}")
 
-# === Display Question ===
-st.subheader("Question")
-question = prompts[selected_scene]["Q"]
-st.text(question)
+# Run Button
+if st.button("Run DriveVLM"):
+    with st.spinner("Running LLM model on images..."):
+        subprocess.run(["python", EVAL_SCRIPT])
 
-# === Answer Section ===
-if st.button("Get Answer"):
-    # Call eval.py
-    with st.spinner("Running model..."):
-        subprocess.run(["python3", "modules/eval.py"])  # Update this if eval.py takes arguments
-
-    # Load predictions
+    # Load output
     if os.path.exists(PREDICTIONS_FILE):
         with open(PREDICTIONS_FILE, "r") as f:
             preds = json.load(f)
 
-        answer = next((item["caption"] for item in preds if item["image_id"] == int(selected_scene)), None)
-        if answer:
-            st.success(f"Answer: {answer}")
+        # Find match
+        image_id = image_id_map[selected_key][0]
+        matched = next((p["caption"] for p in preds if p["image_id"] == image_id), None)
+
+        if matched:
+            st.success(f"LLM Answer: {matched}")
         else:
-            st.error("No answer found for this scene.")
+            st.error("❌ No matching output found in predictions.json.")
     else:
-        st.error("predictions.json not found.")
+        st.error("❌ predictions.json not found after inference.")
