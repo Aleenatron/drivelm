@@ -1,0 +1,97 @@
+[
+    [
+        {
+            "Q": "How many vehicles are visible in the scene?",
+            "A": "",
+            "C": null,
+            "con_up": null,
+            "con_down": null,
+            "cluster": null,
+            "layer": null
+        },
+        {
+            "CAM_FRONT": "data/nuscenes/CAM_FRONT/n008-2018-05-21-11-06-59-0400__CAM_FRONT__1526915244512465.jpg",
+            "CAM_FRONT_LEFT": "data/nuscenes/CAM_FRONT_LEFT/n008-2018-05-21-11-06-59-0400__CAM_FRONT_LEFT__1526915244504917.jpg",
+            "CAM_FRONT_RIGHT": "data/nuscenes/CAM_FRONT_RIGHT/n008-2018-05-21-11-06-59-0400__CAM_FRONT_RIGHT__1526915244519956.jpg",
+            "CAM_BACK": "data/nuscenes/CAM_BACK/n008-2018-05-21-11-06-59-0400__CAM_BACK__1526915244537570.jpg",
+            "CAM_BACK_LEFT": "data/nuscenes/CAM_BACK_LEFT/n008-2018-05-21-11-06-59-0400__CAM_BACK_LEFT__1526915244547295.jpg",
+            "CAM_BACK_RIGHT": "data/nuscenes/CAM_BACK_RIGHT/n008-2018-05-21-11-06-59-0400__CAM_BACK_RIGHT__1526915244527813.jpg"
+        }
+    ],
+    [
+        {
+            "Q": "What colors are the nearby vehicles?",
+            "A": "",
+            "C": null,
+            "con_up": null,
+            "con_down": null,
+            "cluster": null,
+            "layer": null
+        },
+        {
+            "CAM_FRONT": "data/nuscenes/CAM_FRONT/n008-2018-05-21-11-06-59-0400__CAM_FRONT__1526915246912465.jpg",
+            "CAM_FRONT_LEFT": "data/nuscenes/CAM_FRONT_LEFT/n008-2018-05-21-11-06-59-0400__CAM_FRONT_LEFT__1526915246904917.jpg",
+            "CAM_FRONT_RIGHT": "data/nuscenes/CAM_FRONT_RIGHT/n008-2018-05-21-11-06-59-0400__CAM_FRONT_RIGHT__1526915246919956.jpg",
+            "CAM_BACK": "data/nuscenes/CAM_BACK/n008-2018-05-21-11-06-59-0400__CAM_BACK__1526915246937570.jpg",
+            "CAM_BACK_LEFT": "data/nuscenes/CAM_BACK_LEFT/n008-2018-05-21-11-06-59-0400__CAM_BACK_LEFT__1526915246947295.jpg",
+            "CAM_BACK_RIGHT": "data/nuscenes/CAM_BACK_RIGHT/n008-2018-05-21-11-06-59-0400__CAM_BACK_RIGHT__1526915246927813.jpg"
+        }
+    ],
+    [
+        {
+            "Q": "Is there a pedestrian in the scene?",
+            "A": "",
+            "C": null,
+            "con_up": null,
+            "con_down": null,
+            "cluster": null,
+            "layer": null
+        },
+        {
+            "CAM_FRONT": "data/nuscenes/CAM_FRONT/n008-2018-05-21-11-06-59-0400__CAM_FRONT__1526915249362465.jpg",
+            "CAM_FRONT_LEFT": "data/nuscenes/CAM_FRONT_LEFT/n008-2018-05-21-11-06-59-0400__CAM_FRONT_LEFT__1526915249354917.jpg",
+            "CAM_FRONT_RIGHT": "data/nuscenes/CAM_FRONT_RIGHT/n008-2018-05-21-11-06-59-0400__CAM_FRONT_RIGHT__1526915249369956.jpg",
+            "CAM_BACK": "data/nuscenes/CAM_BACK/n008-2018-05-21-11-06-59-0400__CAM_BACK__1526915249387570.jpg",
+            "CAM_BACK_LEFT": "data/nuscenes/CAM_BACK_LEFT/n008-2018-05-21-11-06-59-0400__CAM_BACK_LEFT__1526915249397295.jpg",
+            "CAM_BACK_RIGHT": "data/nuscenes/CAM_BACK_RIGHT/n008-2018-05-21-11-06-59-0400__CAM_BACK_RIGHT__1526915249377813.jpg"
+        }
+    ],
+    [
+        {
+            "Q": "Is it safe for the ego vehicle to reverse?",
+            "A": "",
+            "C": null,
+            "con_up": null,
+            "con_down": null,
+            "cluster": null,
+            "layer": null
+        },
+        {
+            "CAM_FRONT": "data/nuscenes/CAM_FRONT/n008-2018-05-21-11-06-59-0400__CAM_FRONT__1526915252362465.jpg",
+            "CAM_FRONT_LEFT": "data/nuscenes/CAM_FRONT_LEFT/n008-2018-05-21-11-06-59-0400__CAM_FRONT_LEFT__1526915252354917.jpg",
+            "CAM_FRONT_RIGHT": "data/nuscenes/CAM_FRONT_RIGHT/n008-2018-05-21-11-06-59-0400__CAM_FRONT_RIGHT__1526915252369956.jpg",
+            "CAM_BACK": "data/nuscenes/CAM_BACK/n008-2018-05-21-11-06-59-0400__CAM_BACK__1526915252387570.jpg",
+            "CAM_BACK_LEFT": "data/nuscenes/CAM_BACK_LEFT/n008-2018-05-21-11-06-59-0400__CAM_BACK_LEFT__1526915252397295.jpg",
+            "CAM_BACK_RIGHT": "data/nuscenes/CAM_BACK_RIGHT/n008-2018-05-21-11-06-59-0400__CAM_BACK_RIGHT__1526915252377813.jpg"
+        }
+    ],
+    [
+        {
+            "Q": "What is directly behind the ego vehicle?",
+            "A": "",
+            "C": null,
+            "con_up": null,
+            "con_down": null,
+            "cluster": null,
+            "layer": null
+        },
+        {
+            "CAM_FRONT": "data/nuscenes/CAM_FRONT/n008-2018-05-21-11-06-59-0400__CAM_FRONT__1526915254912465.jpg",
+            "CAM_FRONT_LEFT": "data/nuscenes/CAM_FRONT_LEFT/n008-2018-05-21-11-06-59-0400__CAM_FRONT_LEFT__1526915254904917.jpg",
+            "CAM_FRONT_RIGHT": "data/nuscenes/CAM_FRONT_RIGHT/n008-2018-05-21-11-06-59-0400__CAM_FRONT_RIGHT__1526915254919956.jpg",
+            "CAM_BACK": "data/nuscenes/CAM_BACK/n008-2018-05-21-11-06-59-0400__CAM_BACK__1526915254937570.jpg",
+            "CAM_BACK_LEFT": "data/nuscenes/CAM_BACK_LEFT/n008-2018-05-21-11-06-59-0400__CAM_BACK_LEFT__1526915254947295.jpg",
+            "CAM_BACK_RIGHT": "data/nuscenes/CAM_BACK_RIGHT/n008-2018-05-21-11-06-59-0400__CAM_BACK_RIGHT__1526915254927813.jpg"
+        }
+    ]
+]
