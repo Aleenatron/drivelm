@@ -169,5 +169,24 @@
             "CAM_BACK_LEFT": "data/nuscenes/CAM_BACK_LEFT/n015-2018-11-21-19-38-26+0800__CAM_BACK_LEFT__1542800523447423.jpg",
             "CAM_BACK_RIGHT": "data/nuscenes/CAM_BACK_RIGHT/n015-2018-11-21-19-38-26+0800__CAM_BACK_RIGHT__1542800360877893.jpg"
         }
-    ] 
+    ],
+       [
+        {
+            "Q": "What are the important objects in the scene?",
+            "A": "",
+            "C": null,
+            "con_up": null,
+            "con_down": null,
+            "cluster": null,
+            "layer": null
+        },
+        {
+            "CAM_BACK_RIGHT": "data/nuscenes/CAM_BACK_RIGHT/n008-2018-07-26-12-13-50-0400__CAM_BACK_RIGHT__1532622245678113.jpg",
+            "CAM_FRONT_RIGHT": "data/nuscenes/CAM_FRONT_RIGHT/n008-2018-07-26-12-13-50-0400__CAM_FRONT_RIGHT__1532622245670482.jpg",
+            "CAM_BACK_LEFT": "data/nuscenes/CAM_BACK_LEFT/n008-2018-07-26-12-13-50-0400__CAM_BACK_LEFT__1532622245697405.jpg",
+            "CAM_FRONT": "data/nuscenes/CAM_FRONT/n008-2018-07-26-12-13-50-0400__CAM_FRONT__1532622245662404.jpg",
+            "CAM_BACK": "data/nuscenes/CAM_BACK/n008-2018-07-26-12-13-50-0400__CAM_BACK__1532622245687558.jpg",
+            "CAM_FRONT_LEFT": "data/nuscenes/CAM_FRONT_LEFT/n008-2018-07-26-12-13-50-0400__CAM_FRONT_LEFT__1532622245654801.jpg"
+        }
+    ]   
 ]
