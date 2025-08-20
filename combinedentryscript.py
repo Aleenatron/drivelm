@@ -1,13 +1,13 @@
-import os, json
+import os, json, sys
 from collections import defaultdict
 
 # --- Config ---
 DATA_FOLDER = "data/nuscenes"
 IMAGE_ID_JSON = "data/multi_frame/image_id_dummy.json"
+PROMPT_JSON   = "data/multi_frame/dummyprompts.json"
 CAMERAS = ["CAM_FRONT","CAM_FRONT_LEFT","CAM_FRONT_RIGHT",
            "CAM_BACK","CAM_BACK_LEFT","CAM_BACK_RIGHT"]
 
-# ✅ Expanded question list you shared
 EASY_QUESTIONS = [
     "How many vehicles are visible in the scene?",
     "What colors are the nearby vehicles?",
@@ -28,10 +28,10 @@ def build_scene_index():
         if not os.path.isdir(folder):
             continue
         for fname in sorted(os.listdir(folder)):
-            if not fname.endswith(".jpg"): 
+            if not fname.endswith(".jpg"):
                 continue
             parts = fname.split("__")
-            if len(parts) < 3: 
+            if len(parts) < 3:
                 continue
             scene_key = parts[0]
             ts = parts[2].split(".")[0]
@@ -53,13 +53,13 @@ def next_image_id(image_id_json):
     except Exception:
         return 0
 
-def preview_entry(question, cams, nid):
-    """Helper to format preview for both JSONs"""
+def add_entry(question, cams, nid, dry_run=False):
+    """Either preview or write entries to both JSON files"""
     img_key = cams["CAM_BACK"]
     question_key = f"{img_key} {question.strip()} Answer:"
-    print("\n➡️ Would add to image_id_dummy.json:")
-    print(json.dumps({question_key: [nid, cams]}, indent=2))
-    print("\n➡️ Would append to dummyprompts.json:")
+
+    # build both entries
+    image_entry = {question_key: [nid, cams]}
     prompt_entry = [
         {
             "Q": question,
@@ -72,9 +72,38 @@ def preview_entry(question, cams, nid):
         },
         cams
     ]
-    print(json.dumps(prompt_entry, indent=2))
+
+    if dry_run:
+        print(f"\n➡️ Would add to image_id_dummy.json:")
+        print(json.dumps(image_entry, indent=2))
+        print(f"\n➡️ Would append to dummyprompts.json:")
+        print(json.dumps(prompt_entry, indent=2))
+    else:
+        # ---- image_id_dummy.json ----
+        if os.path.exists(IMAGE_ID_JSON):
+            with open(IMAGE_ID_JSON, "r") as f:
+                image_id_data = json.load(f)
+        else:
+            image_id_data = {}
+        image_id_data.update(image_entry)
+        with open(IMAGE_ID_JSON, "w") as f:
+            json.dump(image_id_data, f, indent=2)
+
+        # ---- dummyprompts.json ----
+        if os.path.exists(PROMPT_JSON):
+            with open(PROMPT_JSON, "r") as f:
+                prompts = json.load(f)
+        else:
+            prompts = []
+        prompts.append(prompt_entry)
+        with open(PROMPT_JSON, "w") as f:
+            json.dump(prompts, f, indent=2)
+
+        print(f"✅ Written: '{question}' with ID {nid}")
 
 def main():
+    dry_run = "--dry-run" in sys.argv
+
     scenes = build_scene_index()
     if not scenes:
         print("❌ No complete 6-camera scenes found under", DATA_FOLDER)
@@ -86,18 +115,14 @@ def main():
         print(f"{i}. {sk} -> {list(scenes[sk].keys())}")
 
     sel = input("\n➡️ Pick a scene number or scene key: ").strip()
-
     if sel.isdigit() and 1 <= int(sel) <= len(scene_keys):
-        # case 1: user picked a number
         scene_key = scene_keys[int(sel)-1]
     elif sel in scene_keys:
-        # case 2: user pasted an actual scene id
         scene_key = sel
     else:
         print("❌ Invalid selection.")
         return
 
-    scene_key = scene_keys[int(sel)-1]
     cams = scenes[scene_key]
 
     # select question
@@ -112,17 +137,18 @@ def main():
 
     nid = next_image_id(IMAGE_ID_JSON)
 
-    print("\n🔎 PREVIEW (no files will be modified):\n")
+    print("\n🔎 Processing...\n")
 
-    # 1. user-selected question
-    print("### User-selected question ###")
-    preview_entry(question, cams, nid)
+    # 1. user-selected
+    add_entry(question, cams, nid, dry_run=dry_run)
 
-    # 2. auto-added summarize scene
-    print("\n### Auto-added 'Summarize the scene' ###")
-    preview_entry("Summarize the scene", cams, nid + 1)
+    # 2. auto summarize
+    add_entry("Summarize the scene", cams, nid+1, dry_run=dry_run)
 
-    print("\n✅ Dry run complete. Nothing was written.")
+    if dry_run:
+        print("\n✅ Dry run complete. Nothing was written.")
+    else:
+        print("\n✅ Both entries written successfully!")
 
 if __name__ == "__main__":
     main()
