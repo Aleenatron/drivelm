@@ -1,0 +1,239 @@
+import streamlit as st
+import json, os
+from datetime import datetime
+from PIL import Image
+from collections import defaultdict
+
+# === import the new helpers from eval.py ===
+from types import SimpleNamespace
+from eval import load_components, run_single_inference, load_image_id_dict
+
+# ===== Constants =====
+CAMERAS = ["CAM_FRONT", "CAM_FRONT_LEFT", "CAM_FRONT_RIGHT",
+           "CAM_BACK", "CAM_BACK_LEFT", "CAM_BACK_RIGHT"]
+BASE_PATH = "data/nuscenes"
+PROMPT_FILE = "data/multi_frame/dummyprompts.json"
+IMAGE_ID_FILE = "data/multi_frame/image_id_dummy.json"
+PREDICTIONS_FILE = "multi_frame_results/T5-Medium/predictions.json"
+
+EASY_QUESTIONS = [
+    "How many vehicles are visible in the scene?",
+    "What colors are the nearby vehicles?",
+    "Is there a pedestrian in the scene?",
+    "Is it safe for the ego vehicle to reverse?",
+    "What is directly behind the ego vehicle?",
+    "What is the relative position of important objects in the scene?",
+    "Is it safe for ego vehicle to right turn?",
+    "Risks of ego vehicle based on its position now?",
+    "What are the important objects in the scene?"
+]
+
+# ===== Helpers =====
+def ensure_json(path, default_obj):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    if not os.path.exists(path):
+        with open(path, "w") as f:
+            json.dump(default_obj, f, indent=2)
+
+def collect_scenes():
+    scene_dict = defaultdict(dict)
+    for cam in CAMERAS:
+        folder = os.path.join(BASE_PATH, cam)
+        if not os.path.isdir(folder):
+            continue
+        for file in sorted(os.listdir(folder)):
+            if not file.endswith(".jpg"): continue
+            parts = file.split("__")
+            if len(parts) < 3: continue
+            scene_key = parts[0]
+            ts = parts[2].split(".")[0]
+            full_path = os.path.join(folder, file)
+            prev = scene_dict[scene_key].get(cam)
+            if not prev or ts > os.path.basename(prev).split("__")[-1].split(".")[0]:
+                scene_dict[scene_key][cam] = full_path
+    return {k: v for k, v in scene_dict.items() if len(v) == 6}
+
+def load_image_keep_aspect(path, width=520):
+    img = Image.open(path)
+    w, h = img.size
+    new_h = int(h * (width / float(w)))
+    return img.resize((width, new_h))
+
+def append_prediction_file(pred):
+    """Append/replace a single prediction in predictions.json."""
+    os.makedirs(os.path.dirname(PREDICTIONS_FILE), exist_ok=True)
+    data = []
+    if os.path.exists(PREDICTIONS_FILE):
+        with open(PREDICTIONS_FILE, "r") as f:
+            try: data = json.load(f)
+            except: data = []
+    # replace if same image_id exists
+    data = [p for p in data if p.get("image_id") != pred["image_id"]]
+    data.append(pred)
+    with open(PREDICTIONS_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+# ===== Init files if missing =====
+ensure_json(PROMPT_FILE, [])
+ensure_json(IMAGE_ID_FILE, {})
+scenes = collect_scenes()
+scene_keys = list(scenes.keys())
+
+# ===== Page Config & Styling =====
+st.set_page_config(layout="centered", page_title="DriveVLM Q&A", initial_sidebar_state="collapsed")
+st.markdown("""
+    <style>
+    html, body, [class*="css"] { font-family: "Segoe UI", sans-serif; font-size: 14px; }
+    .stButton > button {
+        width: 100%; padding: 0.5rem 1rem; font-size: 14px; border-radius: 6px;
+        background-color: #005eb8; color: white; font-weight: 500;
+    }
+    .stImage img { border-radius: 6px; margin-bottom: 0.2rem; }
+    .question-box, .answer-box { padding: 0.8rem; margin-top: 1rem; border-radius: 6px; }
+    .question-box { background-color: #eef4fa; border-left: 4px solid #005eb8; }
+    .answer-box { background-color: #e9fbe9; border-left: 4px solid #2e7d32; }
+    </style>
+""", unsafe_allow_html=True)
+
+st.title("🚗 DriveVLM: Ask Questions based on 6 camera feeds")
+
+# ===== Load model ONCE and reuse =====
+if "eval_config" not in st.session_state:
+    # Mirror argparse defaults from eval.py so DriveVLMT5(...) has everything it needs
+    st.session_state.eval_config = SimpleNamespace(
+        # core
+        batch_size=1,
+        epochs=15,
+        gpa_hidden_size=128,
+        freeze_lm=False,          # set True if your trained ckpt was frozen
+        lm="T5-Base",             # "T5-Base" or "T5-Large" to match your ckpt
+        # lora (kept but disabled by default)
+        lora=False,
+        lora_dim=64,
+        lora_alpha=32,
+        lora_dropout=0.05,
+        # misc
+        max_len=512,
+        num_workers=0,
+        model_name="T5-Medium",   # must match folder with latest_model.pth
+        input_json=None,
+        image_id_json=None
+    )
+
+if "eval_components" not in st.session_state:
+    with st.spinner("Loading model…"):
+        model, processor, tfm = load_components(st.session_state.eval_config)
+        st.session_state.eval_components = (model, processor, tfm)
+
+# ===== Scene & Question UI =====
+scene_key = st.selectbox("Select a scene:", scene_keys)
+
+q_col1, q_col2 = st.columns([2, 1])
+with q_col1:
+    chosen_easy = st.selectbox("Pick an easy question:", ["(None)"] + EASY_QUESTIONS)
+with q_col2:
+    custom_q = st.text_input("...or type your own:")
+
+if chosen_easy != "(None)":
+    question = chosen_easy
+elif custom_q.strip():
+    question = custom_q.strip()
+else:
+    question = None
+
+col1, col2 = st.columns(2)
+with col1:
+    run_triggered = st.button("▶️ Run DriveVLM")
+with col2:
+    summarize_triggered = st.button("📝 Summarize Scene")
+
+# ===== Display chosen scene images =====
+if scene_key:
+    cams = scenes[scene_key]
+    row1 = st.columns(3)
+    row1[0].image(cams["CAM_FRONT_LEFT"],  caption="Front Left",  use_container_width=True)
+    row1[1].image(cams["CAM_FRONT"],       caption="Front",       use_container_width=True)
+    row1[2].image(cams["CAM_FRONT_RIGHT"], caption="Front Right", use_container_width=True)
+
+    row2 = st.columns([1, 1.8, 1])
+    row2[0].image(cams["CAM_BACK_LEFT"], caption="Back Left", use_container_width=True)
+    with row2[1]:
+        st.markdown(
+            "<div style='padding:8px; background:#f7f9fc; border:1px solid #e6eef8; border-radius:10px;'>",
+            unsafe_allow_html=True
+        )
+        st.image(load_image_keep_aspect(cams["CAM_BACK"], width=520), caption="Back View", use_container_width=False)
+        st.markdown("</div>", unsafe_allow_html=True)
+    row2[2].image(cams["CAM_BACK_RIGHT"], caption="Back Right", use_container_width=True)
+
+# ===== Backend write + single inference (fast) =====
+def append_entries(scene_key, question, summarize=False):
+    with open(IMAGE_ID_FILE, "r") as f: image_id_data = json.load(f)
+    with open(PROMPT_FILE, "r") as f: prompt_data = json.load(f)
+
+    cams = scenes[scene_key]
+    next_id = max([v[0] for v in image_id_data.values()], default=-1) + 1
+
+    if question:
+        qkey = f"{cams['CAM_BACK']} {question} Answer:"  # match eval.py behavior
+        image_id_data[qkey] = [next_id, cams]
+        st.write("DEBUG wrote image_id key:", qkey)  # <-- debug when writing
+        prompt_data.append([{"Q": question, "A": "", "C": None,
+                             "con_up": None, "con_down": None,
+                             "cluster": None, "layer": None}, cams])
+        next_id += 1
+
+    if summarize:
+        qkey = f"{cams['CAM_BACK']} Summarize the scene Answer:"
+        image_id_data[qkey] = [next_id, cams]
+        st.write("DEBUG wrote image_id key:", qkey)  # <-- debug when writing
+        prompt_data.append([{"Q": "Summarize the scene", "A": "", "C": None,
+                             "con_up": None, "con_down": None,
+                             "cluster": None, "layer": None}, cams])
+
+    with open(IMAGE_ID_FILE, "w") as f: json.dump(image_id_data, f, indent=2)
+    with open(PROMPT_FILE, "w") as f: json.dump(prompt_data, f, indent=2)
+
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    with open(f"data/multi_frame/image_id_dummy_{ts}.json", "w") as f: json.dump(image_id_data, f, indent=2)
+    with open(f"data/multi_frame/dummyprompts_{ts}.json", "w") as f: json.dump(prompt_data, f, indent=2)
+
+if (run_triggered and question) or summarize_triggered:
+    # 1) Write the new entries (so IDs exist)
+    append_entries(scene_key, question, summarize=summarize_triggered)
+
+    # 2) Reload image_id_map (now includes the new key)
+    image_id_map = load_image_id_dict(st.session_state.eval_config)
+
+    # 3) Prepare single inference call
+    cams = scenes[scene_key]
+    last_q = "Summarize the scene" if summarize_triggered else question
+
+    # Build the exact key eval.py expects and show it
+    qkey_expected = f"{cams['CAM_BACK']} {last_q} Answer:"
+    st.write("DEBUG qkey (lookup):", qkey_expected)  # <-- your requested debug line
+    st.write("DEBUG key in image_id_map?", qkey_expected in image_id_map)
+    if qkey_expected in image_id_map:
+        st.write("DEBUG image_id:", image_id_map[qkey_expected][0])
+
+    model, processor, tfm = st.session_state.eval_components
+
+    with st.spinner("Running single inference…"):
+        pred = run_single_inference(
+            model=model,
+            processor=processor,
+            tfm=tfm,
+            cams_dict=cams,
+            question=last_q,
+            image_id_dict=image_id_map,
+            config=st.session_state.eval_config
+        )
+
+    st.markdown(f"<div class='question-box'><b>User:</b> {last_q}</div>", unsafe_allow_html=True)
+
+    if pred is None:
+        st.error("❌ Inference failed or key mismatch.")
+    else:
+        # 4) Update predictions.json incrementally and show result
+        append_prediction_file(pred)
+        st.markdown(f"<div class='answer-box'><b>DriveVLM:</b> {pred['caption']}</div>", unsafe_allow_html=True)
