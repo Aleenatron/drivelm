@@ -3,11 +3,18 @@ __pycache__/
 *.swp
 *.zip
 *.ipynb_checkpoints/
-# Ignore everything in data except the chosen one
-data/*
+# Ignore ALL other .jsons in data/multi_frame/
+data/multi_frame/*.json
+data/nuscenes/
+data/QA_dataset_nus/
 !data/multi_frame/dummyprompts.json
 !data/multi_frame/image_id_dummy.json
+!data/multi_frame/dummy_multi_frame_test_coco.json
 
-# Ignore everything in multi_frame_results except one
+# Only allow predictions.json in T5-Medium
 multi_frame_results/*
-!multi_frame_results/predictions.json
+!multi_frame_results/T5-Medium/
+!multi_frame_results/T5-Medium/predictions.json
+
+# Ignore the model checkpoint
+multi_frame_results/T5-Medium/latest_model.pth
