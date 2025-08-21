@@ -1,2 +1,19 @@
-/data/
-/multi_frame_results/
+__pycache__/
+*.pyc
+*.swp
+*.zip
+*.ipynb_checkpoints/
+# Ignore ALL other .jsons in data/multi_frame/
+data/multi_frame/*.json
+data/nuscenes/
+data/QA_dataset_nus/
+!data/multi_frame/dummyprompts.json
+!data/multi_frame/image_id_dummy.json
+
+# Only allow predictions.json in T5-Medium
+multi_frame_results/*
+!multi_frame_results/T5-Medium/
+!multi_frame_results/T5-Medium/predictions.json
+
+# Ignore the model checkpoint
+multi_frame_results/T5-Medium/latest_model.pth
