@@ -84,6 +84,9 @@ def params():
     parser.add_argument("--model-name", default="T5-Medium", type=str)
     parser.add_argument("--input-json", default=None, type=str, help="Path to custom test json")
     parser.add_argument("--image-id-json", default=None, type=str, help="Path to custom image_id json")
+    parser.add_argument("--annotation-file", default=os.path.join('data','multi_frame','multi_frame_test_coco.json'),
+                    type=str, help="COCO-style GT file for caption eval")
+
     return parser.parse_args()
 
 # ---------------------------
@@ -201,7 +204,15 @@ if __name__ == "__main__":
     val_model(test_dloader, model, processor, image_id_dict, config)
 
     # Optional: COCO eval (kept commented as in your file)
-    annotation_file = os.path.join('data', 'multi_frame', 'multi_frame_test_coco.json')
+    # annotation_file = os.path.join('data', 'multi_frame', 'multi_frame_test_coco.json')
+    # results_file = os.path.join('multi_frame_results', config.model_name, 'predictions.json')
+    # coco = COCO(annotation_file)
+    # coco_result = coco.loadRes(results_file)
+    # coco_eval = COCOEvalCap(coco, coco_result)
+    # coco_eval.params['image_id'] = coco_result.getImgIds()
+    # coco_eval.evaluate()
+    # save_experiment(coco_eval, config)
+    annotation_file = config.annotation_file
     results_file = os.path.join('multi_frame_results', config.model_name, 'predictions.json')
     coco = COCO(annotation_file)
     coco_result = coco.loadRes(results_file)
@@ -209,4 +220,5 @@ if __name__ == "__main__":
     coco_eval.params['image_id'] = coco_result.getImgIds()
     coco_eval.evaluate()
     save_experiment(coco_eval, config)
+
 

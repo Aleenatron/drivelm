@@ -7,8 +7,8 @@ apt-get install nano htop ffmpeg libsm6 libxext6 tmux git wget curl unzip -y
 
 git config --global --add safe.directory /home/ubuntu/persistent
 git config --global --add safe.directory /pvcvolume/cse290c
-git config --global user.email "akash13leena@gmail.com"
-git config --global user.name "Akashleena Sarkar"
+git config --global user.email "aksarkar@ucsc.edu"
+git config --global user.name "Aleenatron"
 
 mkdir -p ~/miniconda3
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
