@@ -9,7 +9,7 @@ from tqdm import tqdm as progress_bar
 from transformers import T5Tokenizer
 from torch.utils.data import DataLoader
 from torchvision import transforms
-
+from datetime import datetime
 from modules.multi_frame_dataset import MultiFrameDataset
 from modules.multi_frame_model import DriveVLMT5
 
@@ -62,10 +62,23 @@ def val_model(dloader, model, processor, image_id_dict, config):
 
 
 def save_experiment(coco_eval, config):
-    trial_dict = {metric: [score] for metric, score in coco_eval.eval.items()}
-    trial_dict = pd.DataFrame(trial_dict)
+    """Save COCO evaluation metrics to CSV file with timestamp and model info."""
+    # Build a row dict with metrics and metadata
+    trial_data = {
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "model_name": config.model_name
+    }
+    trial_data.update(coco_eval.eval)  # Add BLEU, METEOR, CIDEr, etc.
+
     out_path = os.path.join('multi_frame_results', config.model_name, 'metrics.csv')
-    trial_dict.to_csv(out_path, index=False, header=True)
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+
+    # Append to existing CSV or create with header
+    df = pd.DataFrame([trial_data])
+    if os.path.exists(out_path):
+        df.to_csv(out_path, mode='a', header=False, index=False)
+    else:
+        df.to_csv(out_path, mode='w', header=True, index=False)
 
 
 def params():

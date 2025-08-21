@@ -73,3 +73,12 @@ If you want to run our code on Google Colab, we have provided three different no
       ├── T5-Medium/
       ├── T5-Large/
 ```
+```
+python eval.py \
+  --batch-size 4 \
+  --lm T5-Base \
+  --model-name T5-Medium \
+  --input-json data/multi_frame/dummyprompts.json \
+  --image-id-json data/multi_frame/image_id_dummy.json \
+  --annotation-file data/multi_frame/dummy_multi_frame_test_coco.json
+  ```
