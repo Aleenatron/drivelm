@@ -1,0 +1,50 @@
+# Strat -> find and replace "aleena-drivelm-pvc" with whatever you want and then add enable features as needed
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vlm4ad-pvc
+  labels:
+    k8s-app: vlm4ad-pvc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: vlm4ad-pvc
+  template:
+    metadata:
+      labels:
+        k8s-app: vlm4ad-pvc
+    spec:
+      containers:
+      - name: vlm4ad-pvc
+        image: nvidia/cuda:11.3.1-devel-ubuntu20.04
+        resources:
+          limits:
+            memory: 64Gi
+            cpu: "16"
+            nvidia.com/gpu: 4
+          requests:
+            memory: 64Gi
+            cpu: "16"
+            nvidia.com/gpu: 4
+        command: [ "sh", "-c", "sleep infinity" ]
+        volumeMounts:
+        - mountPath: /pvcvolume
+          name: examplevol
+      volumes:
+      - name: examplevol
+        persistentVolumeClaim:
+          claimName: vlm4ad-pvc
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: nvidia.com/gpu.product
+      #           operator: In
+      #           values:
+      #           - NVIDIA-A10
+      # tolerations:
+      # - effect: NoSchedule
+      #   key: nautilus.io/gilpin-lab
+      #   operator: Exists

@@ -1,2 +1,13 @@
-/data/
-/multi_frame_results/
+__pycache__/
+*.pyc
+*.swp
+*.zip
+*.ipynb_checkpoints/
+# Ignore everything in data except the chosen one
+data/*
+!data/multi_frame/dummyprompts.json
+!data/multi_frame/image_id_dummy.json
+
+# Ignore everything in multi_frame_results except one
+multi_frame_results/*
+!multi_frame_results/predictions.json
