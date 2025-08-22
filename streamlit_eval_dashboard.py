@@ -4,12 +4,13 @@ import json, os, pandas as pd, pathlib
 from datetime import datetime, timezone
 from PIL import Image
 import matplotlib.pyplot as plt
+from io import BytesIO  # <-- for downloadable PNG
 
 # ---------- Paths ----------
 PROMPT_FILE = "data/multi_frame/dummyprompts.json"
 IMAGE_ID_FILE = "data/multi_frame/image_id_dummy.json"
 PREDICTIONS_FILE = "multi_frame_results/T5-Medium/predictions.json"
-RATINGS_FILE = "data/multi_frame/human_ratings.jsonl"
+RATINGS_FILE = "data/multi_frame/human_ratings.json"
 OUT_DIR = pathlib.Path("multi_frame_results")
 
 # ---------- Categories ----------
@@ -61,7 +62,7 @@ pred_by_id = {int(p["image_id"]): p["caption"] for p in (preds or [])}
 # Build rows: (image_id, question, cams, pred)
 rows = []
 for entry in (prompts or []):
-    if not isinstance(entry, list) or len(entry) < 2: 
+    if not isinstance(entry, list) or len(entry) < 2:
         continue
     q = entry[0].get("Q","")
     cams = entry[1]
@@ -145,6 +146,7 @@ if save_btn:
     jloadl.clear()
     st.success("Saved ✅")
 
+
 # ---------- live summary ----------
 ratings = jloadl(RATINGS_FILE)
 if ratings:
@@ -174,11 +176,16 @@ if ratings:
         summ["acc(%)"] = (summ["acc"] * 100.0).astype(float).round(1)
         st.markdown("### 📊 Category accuracy (live)")
         st.dataframe(summ[["category","num","acc(%)"]].sort_values("category"), use_container_width=True)
-        # save for notebooks
+
+        # save and offer downloads for notebooks/archives
         OUT_DIR.mkdir(parents=True, exist_ok=True)
-        summ[["category","num","acc(%)"]].to_csv(OUT_DIR / "human_summary.csv", index=False)
-        summ[["category","num","acc(%)"]].to_json(OUT_DIR / "human_summary.json",
-                                                  orient="records", indent=2, force_ascii=False)
+        csv_path = OUT_DIR / "human_summary.csv"
+        json_path = OUT_DIR / "human_summary.json"
+        summ[["category","num","acc(%)"]].to_csv(csv_path, index=False)
+        summ[["category","num","acc(%)"]].to_json(json_path, orient="records", indent=2, force_ascii=False)
+
+        with open(csv_path, "rb") as f:
+            st.download_button("⬇️ Download summary CSV", f, file_name="human_summary.csv", mime="text/csv")
 
     # reliability counts per category (matplotlib stacked bars)
     st.markdown("### 🔥 Reliability distribution (stacked counts)")
@@ -205,7 +212,17 @@ if ratings:
         plt.xticks(rotation=30, ha="right")
         plt.tight_layout()
         st.pyplot(fig)
+
+        # Download the chart as PNG
+        buf = BytesIO()
+        fig.savefig(buf, format="png", dpi=200, bbox_inches="tight")
+        buf.seek(0)
+        st.download_button(
+            label="⬇️ Download reliability plot (PNG)",
+            data=buf,
+            file_name="reliability_by_category.png",
+            mime="image/png"
+        )
         plt.close(fig)
 else:
     st.info("No ratings saved yet. Add a few above.")
-
