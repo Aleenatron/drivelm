@@ -19,12 +19,12 @@ CATEGORIES = ["binary", "count", "spatial", "planning", "perception", "summary"]
 
 # pretty labels shown in UI (map -> canonical key)
 CATEGORY_LABELS = {
-    "binary":      "binary",
-    "count":       "count",
-    "spatial":     "spatial (relative position / where)",
-    "planning":    "planning",
-    "perception":  "perception (what / which / how many)",
-    "summary":     "summary",
+    "binary":      "Binary (Yes/No)",
+    "count":       "Count",
+    "spatial":     "Spatial (Relative Position / Where)",
+    "planning":    "Planning",
+    "perception":  "Perception (What / Which / How Many)",
+    "summary":     "Summary",
 }
 LABEL_TO_CANON = {v: k for k, v in CATEGORY_LABELS.items()}
 
