@@ -1,4 +1,5 @@
 # EM-VLM4AD
+<img width="793" height="827" alt="drivelmoutput" src="https://github.com/user-attachments/assets/142df396-a11f-41df-b7b4-74fead00d48a" />
 
 ## Installation
 1. Clone this repository
@@ -51,15 +52,31 @@ python eval.py \
   --image-id-json data/multi_frame/image_id_dummy.json \
   --annotation-file data/multi_frame/dummy_multi_frame_test_coco.json
   ```
+
+## Inference
+* For inference to generate BLEU-4, CIDEr, METEOR, and ROUGE_L metrics for trained models, you can run `python eval.py --batch-size [BATCH_SIZE] --lm {T5-Base, T5-Large} --checkpoint-file [CHECKPOINT_FOLDER]`. For more information on other hyperparameters to work for different model configurations, run `python eval.py --help`.
+* We use the [pycocoevalcap](https://github.com/salaniz/pycocoevalcap) library to generate the caption metrics we evaluate on. For this library, Java needs to be installed on your computer. We also recommend commenting out [this line](https://github.com/salaniz/pycocoevalcap/blob/master/eval.py#L45) from the pycocoevalcap library to avoid generating SPICE metrics, which can take longer and don't work for multi-frame situations. 
+  ```
+python eval.py \
+  --batch-size 4 \
+  --lm T5-Base \
+  --model-name T5-Medium \
+  --input-json data/multi_frame/dummyprompts.json \
+  --image-id-json data/multi_frame/image_id_dummy.json \
+  --annotation-file data/multi_frame/dummy_multi_frame_test_coco.json
+  ```
+
 ## Running Streamlit Apps
 
 * To run **DriveLM and the annotation tool**, use:
-
+```bash
 streamlit run streamlit_app.py
-
+```
 
 * To run **evaluation metrics for the user study**, use:
-
+```bash
 streamlit run final_streamlit_eval_dashboard.py
+```
 
+<img width="1875" height="1016" alt="relaiabitlity_dashboard" src="https://github.com/user-attachments/assets/fff42168-63b1-44f5-bc4c-585cf4c478de" />
 
