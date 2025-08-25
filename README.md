@@ -54,12 +54,12 @@ python eval.py \
 ## Running Streamlit Apps
 
 * To run **DriveLM and the annotation tool**, use:
-\`\`\`bash
+
 streamlit run streamlit_app.py
-\`\`\`
+
 
 * To run **evaluation metrics for the user study**, use:
-\`\`\`bash
+
 streamlit run final_streamlit_eval_dashboard.py
-\`\`\`
+
 
