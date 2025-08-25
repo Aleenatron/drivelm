@@ -51,3 +51,15 @@ python eval.py \
   --image-id-json data/multi_frame/image_id_dummy.json \
   --annotation-file data/multi_frame/dummy_multi_frame_test_coco.json
   ```
+## Running Streamlit Apps
+
+* To run **DriveLM and the annotation tool**, use:
+\`\`\`bash
+streamlit run streamlit_app.py
+\`\`\`
+
+* To run **evaluation metrics for the user study**, use:
+\`\`\`bash
+streamlit run final_streamlit_eval_dashboard.py
+\`\`\`
+
